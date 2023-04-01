@@ -97,4 +97,17 @@ class HomeWidget {
     ];
     return _channel.invokeMethod('registerBackgroundCallback', args);
   }
+
+  /// It will pin widgets onto their home screen
+  static Future<bool?> requestToPinWidget({
+    String? name,
+    String? androidName,
+    String? qualifiedAndroidName,
+  }) {
+    return _channel.invokeMethod('requestToPinWidget', {
+      'name': name,
+      'android': androidName,
+      'qualifiedAndroidName': qualifiedAndroidName,
+    });
+  }
 }

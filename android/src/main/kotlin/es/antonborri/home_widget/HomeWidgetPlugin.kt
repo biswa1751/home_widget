@@ -1,8 +1,11 @@
 package es.antonborri.home_widget
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
 import android.content.*
+import android.os.Build
 import androidx.annotation.NonNull
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -51,7 +54,7 @@ class HomeWidgetPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                             else -> result.error("-10", "Invalid Type ${data!!::class.java.simpleName}. Supported types are Boolean, Float, String, Double, Long", IllegalArgumentException())
                         }
                     } else {
-                        prefs.remove(id);
+                        prefs.remove(id)
                     }
                     result.success(prefs.commit())
                 } else {
@@ -106,6 +109,33 @@ class HomeWidgetPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 val callback = ((call.arguments as Iterable<*>).toList()[1] as Number).toLong()
                 saveCallbackHandle(context, dispatcher, callback)
                 return result.success(true)
+            }
+            "requestToPinWidget" -> {
+                val qualifiedName = call.argument<String>("qualifiedAndroidName")
+                val className = call.argument<String>("android") ?: call.argument<String>("name")
+                try {
+                    val javaClass = Class.forName(qualifiedName ?: "${context.packageName}.${className}")
+                    val appWidgetManager = AppWidgetManager.getInstance(context.applicationContext)
+                    val myProvider = ComponentName(context.applicationContext,javaClass)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        if (appWidgetManager.isRequestPinAppWidgetSupported) {
+                            // Create the PendingIntent object only if your app needs to be notified
+                            // when the user chooses to pin the widget. Note that if the pinning
+                            // operation fails, your app isn't notified. This callback receives the ID
+                            // of the newly pinned widget (EXTRA_APPWIDGET_ID).
+                            val successCallback = PendingIntent.getBroadcast(
+                                /* context = */ context.applicationContext,
+                                /* requestCode = */ 0,
+                                /* intent = */ Intent(context, javaClass),
+                            /* flags = */ PendingIntent.FLAG_IMMUTABLE)
+
+                            appWidgetManager.requestPinAppWidget(myProvider, null, successCallback)
+                        }
+                    }
+                    result.success(true)
+                } catch (classException: ClassNotFoundException) {
+                    result.error("-3", "No Widget found with Name $className. Argument 'name' must be the same as your AppWidgetProvider you wish to update", classException)
+                }
             }
             else -> {
                 result.notImplemented()
