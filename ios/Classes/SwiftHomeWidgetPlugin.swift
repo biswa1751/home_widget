@@ -30,7 +30,7 @@ public class SwiftHomeWidgetPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
       name: "home_widget/updates", binaryMessenger: registrar.messenger())
     eventChannel.setStreamHandler(instance)
 
-    registrar.addApplicationDelegate(instance)
+    registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
