@@ -37,6 +37,7 @@ public struct HomeWidgetBackgroundWorker {
 
       await sendEvent(url: url, appGroup: appGroup)
     } else {
+      await sendEvent(url: url, appGroup: appGroup)
       queue.append((url, appGroup))
     }
   }
